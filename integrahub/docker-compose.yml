@@ -1,0 +1,66 @@
+services:
+  nginx:
+    image: nginx:1.27
+    ports:
+      - "8081:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./services/portal:/var/www/portal
+      - ./services/orders-api:/var/www/orders-api
+    depends_on:
+      - portal
+      - orders_api
+    networks:
+      - integra_net
+      
+  portal:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /var/www/portal
+    volumes:
+      - ./services/portal:/var/www/portal
+    networks:
+      - integra_net
+
+  orders_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /var/www/orders-api
+    volumes:
+      - ./services/orders-api:/var/www/orders-api
+    networks:
+      - integra_net
+
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: integra
+      POSTGRES_PASSWORD: integra
+      POSTGRES_DB: integrahub
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - integra_net
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: integra
+      RABBITMQ_DEFAULT_PASS: integra
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - integra_net
+
+volumes:
+  pgdata:
+
+networks:
+  integra_net:
+    driver: bridge
