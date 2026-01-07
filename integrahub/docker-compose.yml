@@ -58,6 +58,59 @@ services:
     networks:
       - integra_net
 
+  orders_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /var/www/orders-api
+    volumes:
+      - ./services/orders-api:/var/www/orders-api
+    command: php artisan consume:orders-created
+    depends_on:
+      - rabbitmq
+      - postgres
+    restart: unless-stopped
+    networks:
+      - integra_net
+  router_worker:
+    image: integrahub-orders_api:latest
+    working_dir: /var/www/orders-api
+    volumes:
+      - ./services/orders-api:/var/www/orders-api
+    command: php artisan consume:orders-events-router
+    depends_on:
+      - rabbitmq
+      - postgres
+    restart: unless-stopped
+    networks:
+      - integra_net
+
+  ops_worker:
+    image: integrahub-orders_api:latest
+    working_dir: /var/www/orders-api
+    volumes:
+      - ./services/orders-api:/var/www/orders-api
+    command: php artisan consume:ops-notifications
+    depends_on:
+      - rabbitmq
+    restart: unless-stopped
+    networks:
+      - integra_net
+
+  customer_worker:
+    image: integrahub-orders_api:latest
+    working_dir: /var/www/orders-api
+    volumes:
+      - ./services/orders-api:/var/www/orders-api
+    command: php artisan consume:customer-notifications
+    depends_on:
+      - rabbitmq
+    restart: unless-stopped
+    networks:
+      - integra_net
+
+
+
 volumes:
   pgdata:
 
