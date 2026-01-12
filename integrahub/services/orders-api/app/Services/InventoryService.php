@@ -32,6 +32,7 @@ class InventoryService
 
             foreach ($bySku as $sku => $qty) {
 
+                
                 $item = InventoryItem::query()
                     ->where('sku', $sku)
                     ->lockForUpdate()
