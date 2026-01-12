@@ -111,7 +111,12 @@ class ConsumeOrdersCreated extends Command
             $locked = Order::query()
                 ->whereKey($orderId)
                 ->where('status', 'PENDING')
-                ->update(['status' => 'PROCESSING']);
+                ->update([
+                    'status' => 'PROCESSING',
+                    'last_event' => 'orders.processing',   
+                    'last_event_at' => now(),
+                ]);
+
 
             if ($locked === 0) {
                 $this->warn("Order {$orderId} skipped (status != PENDING)");
@@ -129,9 +134,15 @@ class ConsumeOrdersCreated extends Command
                 $this->chargePayment($paymentUrl, $data);
 
                 $order->status = 'CONFIRMED';
+                $order->last_event = 'orders.confirmed';
+                $order->last_event_at = now();
                 $order->save();
 
-                $event = $this->translateEvent('orders.confirmed', $order, $data);
+                $event = $this->translateEvent('orders.confirmed', $order, $data, [
+                    'last_event' => $order->last_event,
+                    'last_event_at' => $order->last_event_at?->toIso8601String(),
+                ]);
+
                 $this->publishJson($ch, $exchange, 'orders.confirmed', $event, $headers);
 
                 $this->info("Order {$orderId} -> CONFIRMED");
@@ -143,7 +154,11 @@ class ConsumeOrdersCreated extends Command
                 $willRetry = $attempt < ($maxAttempts - 1);
 
                 if ($willRetry) {
-                    Order::query()->whereKey($orderId)->update(['status' => 'PENDING']);
+                    Order::query()->whereKey($orderId)->update([
+                        'status' => 'PENDING',
+                        'last_event' => 'orders.retrying',
+                        'last_event_at' => now(),
+                    ]);
 
                     $stepIndex = min($attempt, count($retrySteps) - 1);
                     $step = $retrySteps[$stepIndex];
@@ -159,12 +174,18 @@ class ConsumeOrdersCreated extends Command
                     return;
                 }
 
-                Order::query()->whereKey($orderId)->update(['status' => 'REJECTED']);
+                Order::query()->whereKey($orderId)->update([
+                    'status' => 'REJECTED',
+                    'last_event' => 'orders.rejected',
+                    'last_event_at' => now(),
+                ]);
                 $order = Order::find($orderId);
 
                 if ($order) {
                     $event = $this->translateEvent('orders.rejected', $order, $data, [
                         'reason' => $e->getMessage(),
+                        'last_event' => $order->last_event,
+                        'last_event_at' => $order->last_event_at?->toIso8601String(),
                     ]);
                     $this->publishJson($ch, $exchange, 'orders.rejected', $event, $headers);
                 }

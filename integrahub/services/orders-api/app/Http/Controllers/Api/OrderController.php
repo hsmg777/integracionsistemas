@@ -36,6 +36,8 @@ class OrderController extends Controller
                 'currency' => $o->currency,
                 'status' => $o->status,
                 'created_at' => $o->created_at?->toIso8601String(),
+                'last_event' => $o->last_event,
+                'last_event_at' => $o->last_event_at?->toIso8601String(),
             ]),
             'meta' => [
                 'current_page' => $paginator->currentPage(),
@@ -63,6 +65,8 @@ class OrderController extends Controller
             'status' => 'PENDING',
             'items' => $validated['items'],
             'payload' => $validated,
+            'last_event' => 'orders.created',
+            'last_event_at' => now(),
         ]);
 
         $routingKey = env('RABBITMQ_ROUTING_KEY', 'orders.created');
@@ -76,12 +80,17 @@ class OrderController extends Controller
             'currency' => $order->currency,
             'customer_email' => $order->customer_email,
             'items' => $order->items,
-            'created_at' => now()->toIso8601String(),
+            'last_event' => $order->last_event,
+            'last_event_at' => $order->last_event_at?->toIso8601String(),
+            'created_at' => $order->created_at?->toIso8601String(),
         ]);
+
 
         return response()->json([
             'id' => $order->id,
             'correlation_id' => $order->correlation_id,
+            'last_event' => $order->last_event,
+            'last_event_at' => $order->last_event_at?->toIso8601String(),
             'status' => $order->status,
         ], 201);
     }
@@ -96,6 +105,8 @@ class OrderController extends Controller
             'currency' => $order->currency,
             'status' => $order->status,
             'items' => $order->items,
+            'last_event' => $order->last_event,
+            'last_event_at' => $order->last_event_at?->toIso8601String(),
             'created_at' => $order->created_at?->toIso8601String(),
         ]);
     }

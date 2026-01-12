@@ -34,5 +34,12 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'orders_api' => [
+        'base_url' => env('ORDERS_API_BASE_URL', 'http://nginx/api'),
+        'client_id' => env('ORDERS_API_CLIENT_ID', ''),
+        'client_secret' => env('ORDERS_API_CLIENT_SECRET', ''),
+    ],
+
+
 
 ];

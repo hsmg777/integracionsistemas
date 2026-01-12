@@ -12,27 +12,6 @@ services:
       - orders_api
     networks:
       - integra_net
-      
-  portal:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    working_dir: /var/www/portal
-    volumes:
-      - ./services/portal:/var/www/portal
-    networks:
-      - integra_net
-
-  orders_api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    working_dir: /var/www/orders-api
-    volumes:
-      - ./services/orders-api:/var/www/orders-api
-    networks:
-      - integra_net
-
 
   postgres:
     image: postgres:16
@@ -44,72 +23,148 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U integra -d integrahub"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
     networks:
       - integra_net
 
   rabbitmq:
     image: rabbitmq:3-management
     environment:
-      RABBITMQ_DEFAULT_USER: integra
-      RABBITMQ_DEFAULT_PASS: integra
+      RABBITMQ_DEFAULT_USER: integra_user
+      RABBITMQ_DEFAULT_PASS: integra_pass_123
+      RABBITMQ_DEFAULT_VHOST: integrahub
     ports:
       - "5672:5672"
       - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - integra_net
+
+  migrate_orders_api:
+    image: integrahub-laravel:latest
+    working_dir: /var/www/orders-api
+    volumes:
+      - ./services/orders-api:/var/www/orders-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: bash -lc "php artisan migrate --force"
+    restart: "no"
+    networks:
+      - integra_net
+
+  migrate_portal:
+    image: integrahub-laravel:latest
+    working_dir: /var/www/portal
+    volumes:
+      - ./services/portal:/var/www/portal
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: bash -lc "php artisan migrate --force"
+    restart: "no"
+    networks:
+      - integra_net
+
+  portal:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: integrahub-laravel:latest
+    working_dir: /var/www/portal
+    volumes:
+      - ./services/portal:/var/www/portal
+    depends_on:
+      migrate_portal:
+        condition: service_completed_successfully
+    networks:
+      - integra_net
+
+  orders_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: integrahub-laravel:latest
+    working_dir: /var/www/orders-api
+    volumes:
+      - ./services/orders-api:/var/www/orders-api
+    depends_on:
+      migrate_orders_api:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
     networks:
       - integra_net
 
   orders_worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: integrahub-laravel:latest
     working_dir: /var/www/orders-api
     volumes:
       - ./services/orders-api:/var/www/orders-api
-    command: php artisan consume:orders-created
     depends_on:
-      - rabbitmq
-      - postgres
+      migrate_orders_api:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    command: bash -lc 'php artisan consume:orders-created'
     restart: unless-stopped
     networks:
       - integra_net
+
   router_worker:
-    image: integrahub-orders_api:latest
+    image: integrahub-laravel:latest
     working_dir: /var/www/orders-api
     volumes:
       - ./services/orders-api:/var/www/orders-api
-    command: php artisan consume:orders-events-router
     depends_on:
-      - rabbitmq
-      - postgres
+      migrate_orders_api:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    command: bash -lc 'php artisan consume:orders-events-router'
     restart: unless-stopped
     networks:
       - integra_net
 
   ops_worker:
-    image: integrahub-orders_api:latest
+    image: integrahub-laravel:latest
     working_dir: /var/www/orders-api
     volumes:
       - ./services/orders-api:/var/www/orders-api
-    command: php artisan consume:ops-notifications
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
+    command: bash -lc 'php artisan consume:ops-notifications'
     restart: unless-stopped
     networks:
       - integra_net
 
   customer_worker:
-    image: integrahub-orders_api:latest
+    image: integrahub-laravel:latest
     working_dir: /var/www/orders-api
     volumes:
       - ./services/orders-api:/var/www/orders-api
-    command: php artisan consume:customer-notifications
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
+    command: bash -lc 'php artisan consume:customer-notifications'
     restart: unless-stopped
     networks:
       - integra_net
-
-
 
 volumes:
   pgdata:
