@@ -66,6 +66,8 @@ services:
     working_dir: /var/www/portal
     volumes:
       - ./services/portal:/var/www/portal
+      - portal_storage:/var/www/portal/storage
+      - portal_cache:/var/www/portal/bootstrap/cache
     depends_on:
       postgres:
         condition: service_healthy
@@ -82,6 +84,13 @@ services:
     working_dir: /var/www/portal
     volumes:
       - ./services/portal:/var/www/portal
+      - portal_storage:/var/www/portal/storage
+      - portal_cache:/var/www/portal/bootstrap/cache
+    command: >
+      bash -lc "mkdir -p storage/framework/{cache,sessions,views} storage/logs bootstrap/cache
+      && chown -R www-data:www-data storage bootstrap/cache
+      && chmod -R 775 storage bootstrap/cache
+      && php-fpm"
     depends_on:
       migrate_portal:
         condition: service_completed_successfully
@@ -96,6 +105,9 @@ services:
     working_dir: /var/www/orders-api
     volumes:
       - ./services/orders-api:/var/www/orders-api
+      - orders_api_storage:/var/www/orders-api/storage
+      - orders_api_cache:/var/www/orders-api/bootstrap/cache
+      - ./services/orders-api/storage/app/inbox/inventory:/var/www/orders-api/storage/app/inbox/inventory
     depends_on:
       migrate_orders_api:
         condition: service_completed_successfully
@@ -122,6 +134,25 @@ services:
     restart: unless-stopped
     networks:
       - integra_net
+
+  inventory_inbox_worker:
+    image: integrahub-laravel:latest
+    working_dir: /var/www/orders-api
+    volumes:
+      - ./services/orders-api:/var/www/orders-api
+      - orders_api_storage:/var/www/orders-api/storage
+      - orders_api_cache:/var/www/orders-api/bootstrap/cache
+      - ./services/orders-api/storage/app/inbox/inventory:/var/www/orders-api/storage/app/inbox/inventory
+    depends_on:
+      migrate_orders_api:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    command: bash -lc 'while true; do php artisan inventory:import-inbox; sleep 5; done'
+    restart: unless-stopped
+    networks:
+      - integra_net
+
 
   router_worker:
     image: integrahub-laravel:latest
@@ -168,6 +199,10 @@ services:
 
 volumes:
   pgdata:
+  orders_api_storage:
+  orders_api_cache:
+  portal_storage:
+  portal_cache:
 
 networks:
   integra_net:

@@ -8,6 +8,16 @@
 
 <body style="font-family: Arial; padding: 24px;">
   <h1>IntegraHub - Demo Portal</h1>
+    @if(isset($health))
+    <div style="margin:12px 0; padding:10px; background:#f4f4f4; border:1px solid #ddd;">
+        <b>System status:</b>
+        @if(($health['ok'] ?? false) === true)
+        ✅ OK
+        @else
+        ❌ DOWN {{ $health['error'] ?? '' }}
+        @endif
+    </div>
+    @endif
 
   @if (session('success'))
     <div style="margin:12px 0; padding:10px; background:#e9ffe9; border:1px solid #7dd87d;">
@@ -114,7 +124,7 @@
           </td>
 
           <td style="border:1px solid #ddd; padding:8px;">
-            {{ $o['last_event_at'] ?? '-' }}
+            {{ !empty($o['last_event_at']) ? \Carbon\Carbon::parse($o['last_event_at'])->format('Y-m-d H:i:s') : '-' }}
           </td>
 
           <td style="border:1px solid #ddd; padding:8px;">

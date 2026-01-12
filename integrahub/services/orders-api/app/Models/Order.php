@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
@@ -22,7 +23,7 @@ class Order extends Model
         'payload' => 'array',
         'total_amount' => 'decimal:2',
         'last_event_at' => 'datetime',
-        'last_event_at' => 'datetime',
     ];
-}
 
+
+}

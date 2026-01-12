@@ -7,19 +7,39 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Http;
 use Throwable;
 
 class PortalOrdersController extends Controller
 {
     public function index(): View
     {
+        $health = null;
+
+        try {
+            $baseUrl = rtrim((string) config('services.orders_api.base_url'), '/');
+
+            $health = Http::acceptJson()
+                ->timeout(2)
+                ->get($baseUrl . '/health')
+                ->json();
+
+            if (!is_array($health)) {
+                $health = ['ok' => false, 'error' => 'Respuesta /health no es JSON válido'];
+            }
+        } catch (Throwable $e) {
+            $health = [
+                'ok' => false,
+                'error' => $e->getMessage(),
+            ];
+        }
+
         try {
             $payload = OrdersApiClient::make()->list();
 
             $orders = $payload['data'] ?? [];
             $meta   = $payload['meta'] ?? null;
             $links  = $payload['links'] ?? null;
-
         } catch (Throwable $e) {
             $orders = [];
             $meta = null;
@@ -31,8 +51,10 @@ class PortalOrdersController extends Controller
             'orders' => $orders,
             'meta'   => $meta,
             'links'  => $links,
+            'health' => $health,
         ]);
     }
+
 
     public function poll(int $id): JsonResponse
     {

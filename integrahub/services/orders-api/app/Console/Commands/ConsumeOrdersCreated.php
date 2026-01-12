@@ -6,6 +6,7 @@ use App\Models\Order;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use App\Services\InventoryService;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 use PhpAmqpLib\Wire\AMQPTable;
@@ -130,7 +131,7 @@ class ConsumeOrdersCreated extends Command
                     throw new RuntimeException('order_not_found');
                 }
 
-                $this->reserveInventory($inventoryUrl, $data);
+                $this->reserveInventoryFromOrder($order);
                 $this->chargePayment($paymentUrl, $data);
 
                 $order->status = 'CONFIRMED';
@@ -139,10 +140,8 @@ class ConsumeOrdersCreated extends Command
                 $order->save();
 
                 $event = $this->translateEvent('orders.confirmed', $order, $data, [
-                    'last_event' => $order->last_event,
-                    'last_event_at' => $order->last_event_at?->toIso8601String(),
+                    // datos adicionales si se requiere
                 ]);
-
                 $this->publishJson($ch, $exchange, 'orders.confirmed', $event, $headers);
 
                 $this->info("Order {$orderId} -> CONFIRMED");
@@ -184,8 +183,6 @@ class ConsumeOrdersCreated extends Command
                 if ($order) {
                     $event = $this->translateEvent('orders.rejected', $order, $data, [
                         'reason' => $e->getMessage(),
-                        'last_event' => $order->last_event,
-                        'last_event_at' => $order->last_event_at?->toIso8601String(),
                     ]);
                     $this->publishJson($ch, $exchange, 'orders.rejected', $event, $headers);
                 }
@@ -250,24 +247,33 @@ class ConsumeOrdersCreated extends Command
             'total_amount' => $order->total_amount,
             'currency' => $order->currency,
             'customer_email' => $order->customer_email,
+
+            // ✅ trazabilidad mínima SIEMPRE presente
+            'last_event' => $order->last_event,
+            'last_event_at' => $order->last_event_at?->toIso8601String(),
         ], $extra);
     }
 
-    private function reserveInventory(?string $url, array $data): void
+
+    private function reserveInventoryFromOrder(Order $order): void
     {
-        if (!$url) {
-            $items = $data['items'] ?? [];
-            foreach ($items as $it) {
-                $sku = strtoupper((string) ($it['sku'] ?? ''));
-                if ($sku === 'FAIL_INV' || $sku === 'NO_STOCK') {
-                    throw new RuntimeException('inventory_insufficient');
-                }
-            }
-            return;
+        $items = collect($order->items ?? [])
+            ->map(fn ($it) => [
+                'sku' => (string) ($it['sku'] ?? ''),
+                'qty' => (int) ($it['qty'] ?? 0),
+            ])
+            ->filter(fn ($it) => $it['sku'] !== '' && $it['qty'] > 0)
+            ->values()
+            ->all();
+
+        if (empty($items)) {
+            throw new RuntimeException('order_items_empty');
         }
 
-        $this->callWithCircuitBreaker('inventory', $url, $data);
+        app(InventoryService::class)->reserve($items);
     }
+
+
 
     private function chargePayment(?string $url, array $data): void
     {
