@@ -51,6 +51,7 @@ class ImportInventoryInbox extends Command
                 $fullPath = $disk->path($processing);
                 [$rows, $count] = $this->parseCsv($fullPath);
 
+                
                 $skus = collect($rows)->pluck('sku')->all();
 
                 $existing = InventoryItem::query()
