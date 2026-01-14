@@ -51,11 +51,33 @@ class ImportInventoryInbox extends Command
                 $fullPath = $disk->path($processing);
                 [$rows, $count] = $this->parseCsv($fullPath);
 
+                $skus = collect($rows)->pluck('sku')->all();
+
+                $existing = InventoryItem::query()
+                    ->whereIn('sku', $skus)
+                    ->get()
+                    ->keyBy('sku');
+
+                $finalRows = [];
+
+                foreach ($rows as $row) {
+                    $sku = $row['sku'];
+
+                    if (isset($existing[$sku])) {
+                        $row['stock'] = $existing[$sku]->stock + $row['stock'];
+                        $row['created_at'] = $existing[$sku]->created_at;
+                    }
+
+                    $row['updated_at'] = now();
+                    $finalRows[] = $row;
+                }
+
                 InventoryItem::upsert(
-                    $rows,
+                    $finalRows,
                     ['sku'],
-                    ['name', 'price', 'updated_at']
+                    ['name', 'price', 'stock', 'updated_at']
                 );
+
 
                 $final = "{$processedDir}/" . preg_replace('/\.csv$/i', '', $base)
                     . "_ok_{$count}.csv";

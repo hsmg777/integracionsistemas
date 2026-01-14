@@ -116,4 +116,45 @@ class OrdersApiClient
         return $res->json();
     }
 
+    public function getDailyAnalytics(): array
+    {
+        $res = $this->client()->get("{$this->baseUrl}/analytics/daily");
+
+        if (!$res->successful()) {
+            throw new RuntimeException('orders_api_analytics_daily_failed');
+        }
+
+        $json = $res->json();
+
+        return $json['data'] ?? [];
+    }
+
+
+    public function getLiveAnalytics(): array
+    {
+        $res = $this->client()->get("{$this->baseUrl}/analytics/live");
+
+        if (!$res->successful()) {
+            // Live es opcional si no está implementado aún
+            return [
+                'enabled' => false,
+                'message' => 'Live analytics no disponible',
+            ];
+        }
+
+        return $res->json();
+    }
+
+
+    public function buildDaily(?string $date = null): void
+    {
+        $payload = $date ? ['date' => $date] : [];
+
+        $res = $this->client()->post("{$this->baseUrl}/analytics/build", $payload);
+
+        if (!$res->successful()) {
+            throw new RuntimeException('orders_api_analytics_build_failed');
+        }
+    }
+
 }
