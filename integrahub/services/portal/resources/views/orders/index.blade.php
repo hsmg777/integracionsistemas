@@ -28,9 +28,9 @@
       --radius-sm: 14px;
       --max: 1180px;
 
-      --ok: rgba(14, 165, 164, .18);
-      --warn: rgba(245, 158, 11, .18);
-      --bad: rgba(239, 68, 68, .16);
+      --ok: #10b981;
+      --warn: #f59e0b;
+      --bad: #ef4444;
       --neutral: rgba(15, 23, 42, .06);
       --grid: rgba(15, 23, 42, .06);
     }
@@ -47,9 +47,9 @@
         --border2: rgba(148, 163, 184, .35);
         --shadow: 0 24px 60px rgba(0, 0, 0, .4);
         --ring: rgba(14, 165, 164, .35);
-        --ok: rgba(14, 165, 164, .2);
-        --warn: rgba(245, 158, 11, .2);
-        --bad: rgba(239, 68, 68, .2);
+        --ok: #059669;
+        --warn: #d97706;
+        --bad: #dc2626;
         --neutral: rgba(148, 163, 184, .08);
         --grid: rgba(148, 163, 184, .08);
       }
@@ -279,7 +279,7 @@
 
     .btn {
       border: 1px solid var(--border);
-      background: var(--panel);
+      background: #0f172a;
       padding: 10px 14px;
       border-radius: 12px;
       font-weight: 700;
@@ -288,6 +288,7 @@
       transition: transform .12s ease, background .12s ease, border-color .12s ease;
       height: 40px;
       backdrop-filter: blur(10px);
+      color: #fff;
     }
 
     .btn:hover {
@@ -302,9 +303,14 @@
     }
 
     .btnPrimary {
-      border-color: rgba(37, 99, 235, .35);
-      background: linear-gradient(135deg, rgba(37, 99, 235, .18), rgba(14, 165, 164, .18));
-      color: var(--text);
+      border: none;
+      background: linear-gradient(135deg, #2563eb, #0ea5a4);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, .3);
+    }
+
+    .btnPrimary:hover {
+      box-shadow: 0 6px 16px rgba(37, 99, 235, .4);
     }
 
     .itemsHeader {
@@ -338,8 +344,9 @@
     }
 
     .btnDanger {
-      background: rgba(239, 68, 68, .12);
-      border-color: rgba(239, 68, 68, .3);
+      background: #dc2626;
+      border-color: #ef4444;
+      color: #fff;
     }
 
     .tableWrap {
@@ -395,14 +402,20 @@
 
     .bOk {
       background: var(--ok);
+      color: #fff;
+      border: none;
     }
 
     .bWarn {
       background: var(--warn);
+      color: #fff;
+      border: none;
     }
 
     .bBad {
       background: var(--bad);
+      color: #fff;
+      border: none;
     }
 
     .link {
@@ -447,8 +460,7 @@
       </div>
       <nav class="nav">
         <a class="navLink isActive" href="{{ route('orders.index') }}">Orders</a>
-        <a class="navLink {{ request()->routeIs('inventory.*') ? 'isActive' : '' }}"
-          href="{{ route('inventory.index') }}">Inventory</a>
+
         <a class="navLink {{ request()->routeIs('analytics.*') ? 'isActive' : '' }}"
           href="{{ route('analytics.dashboard') }}">Analytics</a>
       </nav>
@@ -461,7 +473,7 @@
         <div class="subtitle">Creacion de pedidos y trazabilidad por eventos en un flujo claro.</div>
       </div>
       <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        <a class="btn btnPrimary" href="/anaylicts">ANALISIS ETL</a>
+        <a class="btn btnPrimary" href="/analytics">ANALISIS ETL</a>
       </div>
     </div>
 
@@ -561,10 +573,13 @@
             @forelse(($orders ?? []) as $o)
               @php
                 $status = strtoupper((string) ($o['status'] ?? ''));
-                $badgeClass =
-                  $status === 'CONFIRMED' ? 'bOk' :
-                  ($status === 'REJECTED' ? 'bBad' :
-                    ($status === 'PROCESSING' ? 'bWarn' : ''));
+                $badgeClass = 'bWarn';
+                if ($status === 'CONFIRMED')
+                  $badgeClass = 'bOk';
+                if ($status === 'REJECTED')
+                  $badgeClass = 'bBad';
+                if ($status === 'PENDING')
+                  $badgeClass = 'bWarn';
               @endphp
 
               <tr>
