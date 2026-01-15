@@ -7,4 +7,8 @@ RUN apt-get update && apt-get install -y \
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
+# Force PHP-FPM to listen on all interfaces
+RUN echo "[www]" > /usr/local/etc/php-fpm.d/zzzz-force-docker.conf && \
+    echo "listen = 9000" >> /usr/local/etc/php-fpm.d/zzzz-force-docker.conf
+
 WORKDIR /var/www
