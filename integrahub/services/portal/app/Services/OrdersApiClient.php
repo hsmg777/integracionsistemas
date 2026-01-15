@@ -2,12 +2,17 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
 class OrdersApiClient
 {
+    private const JWT_CACHE_KEY = 'orders_api.jwt';
+    private const TIMEOUT_SECONDS = 10;
+    private const JWT_TTL_MINUTES = 55;
+
     public function __construct(
         private readonly string $baseUrl,        // http://nginx/api
         private readonly string $clientId,       // demo-client
@@ -23,6 +28,11 @@ class OrdersApiClient
         );
     }
 
+    private function url(string $path): string
+    {
+        return $this->baseUrl . '/' . ltrim($path, '/');
+    }
+
     private function fetchJwt(): string
     {
         if ($this->clientId === '' || $this->clientSecret === '') {
@@ -30,8 +40,8 @@ class OrdersApiClient
         }
 
         $res = Http::acceptJson()
-            ->timeout(10)
-            ->post($this->baseUrl . '/auth/token', [
+            ->timeout(self::TIMEOUT_SECONDS)
+            ->post($this->url('auth/token'), [
                 'client_id' => $this->clientId,
                 'client_secret' => $this->clientSecret,
             ]);
@@ -42,7 +52,9 @@ class OrdersApiClient
         $jwt = $json['access_token'] ?? null;
 
         if (!is_string($jwt) || $jwt === '') {
-            throw new RuntimeException('No se recibió access_token válido desde /auth/token. Respuesta: ' . json_encode($json));
+            throw new RuntimeException(
+                'No se recibió access_token válido desde /auth/token. Respuesta: ' . json_encode($json)
+            );
         }
 
         return $jwt;
@@ -51,48 +63,62 @@ class OrdersApiClient
     private function jwt(): string
     {
         // expires_in = 3600, cacheamos un poco menos para evitar expiración justo en el borde
-        return Cache::remember('orders_api.jwt', now()->addMinutes(55), fn () => $this->fetchJwt());
+        return Cache::remember(
+            self::JWT_CACHE_KEY,
+            now()->addMinutes(self::JWT_TTL_MINUTES),
+            fn () => $this->fetchJwt()
+        );
     }
 
-    private function client()
+    private function client(): PendingRequest
     {
         return Http::withToken($this->jwt())
             ->acceptJson()
-            ->timeout(10);
+            ->timeout(self::TIMEOUT_SECONDS);
+    }
+
+    private function computeTotalAmount(array $items): float
+    {
+        $total = 0.0;
+
+        foreach ($items as $it) {
+            $qty = (float) ($it['qty'] ?? 0);
+            $price = (float) ($it['price'] ?? 0);
+            $total += $qty * $price;
+        }
+
+        return round($total, 2);
     }
 
     public function list(): array
     {
-        $res = $this->client()->get($this->baseUrl . '/orders');
+        $res = $this->client()->get($this->url('orders'));
         $res->throw();
+
         return $res->json();
     }
 
     public function get(int $id): array
     {
-        $res = $this->client()->get($this->baseUrl . "/orders/{$id}");
+        $res = $this->client()->get($this->url("orders/{$id}"));
         $res->throw();
+
         return $res->json();
     }
 
     public function createDemo(): array
     {
         $items = [
-            ["sku" => "SKU-1", "qty" => 1, "price" => 10.50],
+            ['sku' => 'SKU-1', 'qty' => 1, 'price' => 10.50],
         ];
-
-        $totalAmount = 0.0;
-        foreach ($items as $it) {
-            $totalAmount += ((float) $it['qty']) * ((float) $it['price']);
-        }
 
         $payload = [
-            "customer_email" => "hayland@example.com",
-            "items" => $items,
-            "total_amount" => round($totalAmount, 2),
+            'customer_email' => 'hayland@example.com',
+            'items' => $items,
+            'total_amount' => $this->computeTotalAmount($items),
         ];
 
-        $res = $this->client()->post($this->baseUrl . '/orders', $payload);
+        $res = $this->client()->post($this->url('orders'), $payload);
         $res->throw();
 
         return $res->json();
@@ -102,23 +128,18 @@ class OrdersApiClient
     {
         // si no viene total_amount, lo calculamos
         if (!isset($payload['total_amount']) || $payload['total_amount'] === null || $payload['total_amount'] === '') {
-            $total = 0.0;
-            foreach (($payload['items'] ?? []) as $it) {
-                $qty = (float) ($it['qty'] ?? 0);
-                $price = (float) ($it['price'] ?? 0);
-                $total += $qty * $price;
-            }
-            $payload['total_amount'] = round($total, 2);
+            $payload['total_amount'] = $this->computeTotalAmount((array) ($payload['items'] ?? []));
         }
 
-        $res = $this->client()->post($this->baseUrl . '/orders', $payload);
+        $res = $this->client()->post($this->url('orders'), $payload);
         $res->throw();
+
         return $res->json();
     }
 
     public function getDailyAnalytics(): array
     {
-        $res = $this->client()->get("{$this->baseUrl}/analytics/daily");
+        $res = $this->client()->get($this->url('analytics/daily'));
 
         if (!$res->successful()) {
             throw new RuntimeException('orders_api_analytics_daily_failed');
@@ -129,10 +150,9 @@ class OrdersApiClient
         return $json['data'] ?? [];
     }
 
-
     public function getLiveAnalytics(): array
     {
-        $res = $this->client()->get("{$this->baseUrl}/analytics/live");
+        $res = $this->client()->get($this->url('analytics/live'));
 
         if (!$res->successful()) {
             // Live es opcional si no está implementado aún
@@ -145,16 +165,14 @@ class OrdersApiClient
         return $res->json();
     }
 
-
     public function buildDaily(?string $date = null): void
     {
         $payload = $date ? ['date' => $date] : [];
 
-        $res = $this->client()->post("{$this->baseUrl}/analytics/build", $payload);
+        $res = $this->client()->post($this->url('analytics/build'), $payload);
 
         if (!$res->successful()) {
             throw new RuntimeException('orders_api_analytics_build_failed');
         }
     }
-
 }

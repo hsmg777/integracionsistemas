@@ -20,7 +20,7 @@ services:
       POSTGRES_PASSWORD: integra
       POSTGRES_DB: integrahub
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -53,6 +53,8 @@ services:
     working_dir: /var/www/orders-api
     volumes:
       - ./services/orders-api:/var/www/orders-api
+      - orders_api_storage:/var/www/orders-api/storage
+      - orders_api_cache:/var/www/orders-api/bootstrap/cache
     depends_on:
       postgres:
         condition: service_healthy
@@ -94,6 +96,7 @@ services:
     depends_on:
       migrate_portal:
         condition: service_completed_successfully
+    restart: unless-stopped
     networks:
       - integra_net
 
@@ -115,6 +118,7 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
+    restart: unless-stopped
     networks:
       - integra_net
 
@@ -130,7 +134,7 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
-    command: bash -lc 'php artisan consume:orders-created'
+    command: bash -lc "php artisan consume:orders-created"
     restart: unless-stopped
     networks:
       - integra_net
@@ -148,11 +152,10 @@ services:
         condition: service_completed_successfully
       postgres:
         condition: service_healthy
-    command: bash -lc 'while true; do php artisan inventory:import-inbox; sleep 5; done'
+    command: bash -lc "while true; do php artisan inventory:import-inbox; sleep 5; done"
     restart: unless-stopped
     networks:
       - integra_net
-
 
   router_worker:
     image: integrahub-laravel:latest
@@ -166,7 +169,7 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
-    command: bash -lc 'php artisan consume:orders-events-router'
+    command: bash -lc "php artisan consume:orders-events-router"
     restart: unless-stopped
     networks:
       - integra_net
@@ -179,7 +182,7 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
-    command: bash -lc 'php artisan consume:ops-notifications'
+    command: bash -lc "php artisan consume:ops-notifications"
     restart: unless-stopped
     networks:
       - integra_net
@@ -192,10 +195,11 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
-    command: bash -lc 'php artisan consume:customer-notifications'
+    command: bash -lc "php artisan consume:customer-notifications"
     restart: unless-stopped
     networks:
       - integra_net
+
   scheduler:
     image: integrahub-laravel:latest
     working_dir: /var/www/orders-api
@@ -207,7 +211,6 @@ services:
     restart: unless-stopped
     networks:
       - integra_net
-
 
 volumes:
   pgdata:
