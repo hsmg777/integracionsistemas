@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ï»¿<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
   <meta charset="utf-8">
@@ -7,45 +7,42 @@
   <title>{{ config('app.name', 'Integrahub') }}</title>
 
   <link rel="preconnect" href="https://fonts.bunny.net">
-  <link href="https://fonts.bunny.net/css?family=space-grotesk:400,500,600,700|ibm-plex-mono:400,500" rel="stylesheet" />
+  <link href="https://fonts.bunny.net/css?family=manrope:400,500,600,700,800|space-mono:400,700" rel="stylesheet" />
 
   <style>
     :root{
-      --bg:#0c0b0a;
-      --bg-2:#141110;
-      --text: rgba(255,255,255,.94);
-      --muted: rgba(255,255,255,.6);
-      --panel: rgba(255,255,255,.06);
-      --panel2: rgba(255,255,255,.1);
-      --border: rgba(255,255,255,.12);
-      --border2: rgba(255,255,255,.2);
-      --shadow: 0 20px 50px rgba(0,0,0,.45);
-      --ring: rgba(20,184,166,.35);
-      --accent: #14b8a6;
-      --accent-2: #f59e0b;
-      --accent-3: #fb7185;
-      --radius: 18px;
-      --radius-sm: 12px;
+      --bg:#f7f7f2;
+      --bg-2:#eef2f7;
+      --text:#0c111b;
+      --muted:#5b6474;
+      --panel: rgba(255,255,255,.7);
+      --panel2: rgba(255,255,255,.9);
+      --border: rgba(15,23,42,.12);
+      --border2: rgba(15,23,42,.2);
+      --shadow: 0 24px 60px rgba(15,23,42,.12);
+      --ring: rgba(37,99,235,.25);
+      --accent: #2563eb;
+      --accent-2: #0ea5a4;
+      --accent-3: #f59e0b;
+      --radius: 20px;
+      --radius-sm: 14px;
       --max: 1120px;
-      --grid: rgba(255,255,255,.05);
+      --grid: rgba(15,23,42,.06);
     }
 
-    @media (prefers-color-scheme: light){
+    @media (prefers-color-scheme: dark){
       :root{
-        --bg:#f6f2ec;
-        --bg-2:#fffdf9;
-        --text: rgba(17,24,39,.92);
-        --muted: rgba(17,24,39,.62);
-        --panel: rgba(17,24,39,.04);
-        --panel2: rgba(17,24,39,.06);
-        --border: rgba(17,24,39,.12);
-        --border2: rgba(17,24,39,.2);
-        --shadow: 0 16px 40px rgba(17,24,39,.12);
-        --ring: rgba(15,118,110,.28);
-        --accent: #0f766e;
-        --accent-2: #b45309;
-        --accent-3: #e11d48;
-        --grid: rgba(17,24,39,.06);
+        --bg:#0b0f14;
+        --bg-2:#0f1520;
+        --text: rgba(255,255,255,.92);
+        --muted: rgba(255,255,255,.6);
+        --panel: rgba(15,23,42,.6);
+        --panel2: rgba(15,23,42,.8);
+        --border: rgba(148,163,184,.2);
+        --border2: rgba(148,163,184,.35);
+        --shadow: 0 24px 60px rgba(0,0,0,.4);
+        --ring: rgba(14,165,164,.35);
+        --grid: rgba(148,163,184,.08);
       }
     }
 
@@ -53,12 +50,11 @@
     html,body{ height:100%; }
     body{
       margin:0;
-      font-family: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+      font-family: "Manrope", "Segoe UI", ui-sans-serif, system-ui, -apple-system, Arial, sans-serif;
       background:
-        radial-gradient(1100px 600px at 10% -10%, rgba(20,184,166,.22), transparent 60%),
-        radial-gradient(1000px 520px at 90% 0%, rgba(245,158,11,.2), transparent 60%),
-        radial-gradient(900px 520px at 50% 100%, rgba(248,113,113,.12), transparent 60%),
-        var(--bg);
+        radial-gradient(900px 480px at 8% -10%, rgba(37,99,235,.18), transparent 60%),
+        radial-gradient(900px 520px at 92% 5%, rgba(14,165,164,.18), transparent 60%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
       color: var(--text);
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
@@ -72,7 +68,7 @@
         linear-gradient(to right, var(--grid) 1px, transparent 1px),
         linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
       background-size: 140px 140px;
-      opacity: .18;
+      opacity: .22;
       pointer-events: none;
       mask-image: radial-gradient(circle at 20% 0%, rgba(0,0,0,.9), transparent 65%);
     }
@@ -102,19 +98,20 @@
       letter-spacing: .2px;
     }
     .brandMark{
-      width: 38px; height: 38px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, rgba(20,184,166,.9), rgba(245,158,11,.9));
-      box-shadow: 0 10px 20px rgba(20,184,166,.25);
+      width: 40px; height: 40px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(37,99,235,.92), rgba(14,165,164,.92));
+      box-shadow: 0 12px 24px rgba(37,99,235,.25);
       display:flex;
       align-items:center;
       justify-content:center;
-      font-weight: 700;
-      color: #0b0a09;
-      font-size: 14px;
+      font-weight: 800;
+      color: #f8fafc;
+      font-size: 13px;
+      letter-spacing: .08em;
     }
     .brandName{
-      font-weight: 700;
+      font-weight: 800;
       font-size: 14px;
       color: var(--text);
     }
@@ -132,11 +129,12 @@
       border: 1px solid var(--border);
       background: var(--panel);
       color: var(--text);
-      padding: 10px 12px;
+      padding: 10px 14px;
       border-radius: 12px;
-      font-weight: 600;
+      font-weight: 700;
       font-size: 13px;
       transition: transform .12s ease, background .12s ease, border-color .12s ease;
+      backdrop-filter: blur(10px);
     }
     .btn:hover{
       background: var(--panel2);
@@ -148,17 +146,18 @@
       box-shadow: 0 0 0 4px var(--ring);
     }
     .btnPrimary{
-      border-color: rgba(20,184,166,.28);
-      background: linear-gradient(135deg, rgba(20,184,166,.18), rgba(245,158,11,.18));
+      border-color: rgba(37,99,235,.35);
+      background: linear-gradient(135deg, rgba(37,99,235,.18), rgba(14,165,164,.18));
     }
 
     .hero{
       border: 1px solid var(--border);
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      background: var(--panel);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       overflow:hidden;
       position: relative;
+      backdrop-filter: blur(16px);
     }
 
     .heroGrid{
@@ -178,17 +177,17 @@
       gap: 16px;
     }
     .kicker{
-      font-size: 12px;
+      font-size: 11px;
       color: var(--muted);
-      letter-spacing: .12em;
+      letter-spacing: .2em;
       text-transform: uppercase;
     }
     .title{
-      font-size: 40px;
-      line-height: 1.05;
+      font-size: 42px;
+      line-height: 1.04;
       letter-spacing: -0.02em;
       margin:0;
-      font-weight: 760;
+      font-weight: 800;
     }
     .subtitle{
       margin:0;
@@ -209,7 +208,7 @@
       padding: 8px 10px;
       border-radius: 999px;
       border: 1px solid var(--border);
-      background: rgba(255,255,255,.04);
+      background: var(--panel2);
       color: var(--muted);
     }
 
@@ -223,9 +222,9 @@
     .heroRight{
       border-left: 1px solid var(--border);
       background:
-        radial-gradient(700px 300px at 20% 25%, rgba(20,184,166,.2), transparent 55%),
-        radial-gradient(700px 320px at 80% 35%, rgba(245,158,11,.18), transparent 55%),
-        rgba(255,255,255,.02);
+        radial-gradient(700px 300px at 20% 25%, rgba(37,99,235,.18), transparent 55%),
+        radial-gradient(700px 320px at 80% 35%, rgba(14,165,164,.18), transparent 55%),
+        var(--panel2);
       padding: 34px 28px;
       display:flex;
       flex-direction:column;
@@ -239,9 +238,10 @@
 
     .miniCard{
       border: 1px solid var(--border);
-      background: rgba(255,255,255,.04);
+      background: var(--panel2);
       border-radius: var(--radius-sm);
       padding: 14px 14px;
+      backdrop-filter: blur(10px);
     }
     .miniLabel{
       font-size: 12px;
@@ -321,7 +321,7 @@
           </p>
 
           <div class="pillRow">
-            <span class="pill">Diseño consistente</span>
+            <span class="pill">Diseno consistente</span>
             <span class="pill">Soporte responsive</span>
             <span class="pill">Legibilidad alta</span>
             <span class="pill">Dashboard rapido</span>
@@ -362,7 +362,7 @@
     </div>
 
     <div class="footer reveal" style="--delay:.16s;">
-      <div>© {{ date('Y') }} IntegraHub</div>
+      <div>c {{ date('Y') }} IntegraHub</div>
       <div><a href="https://laravel.com" target="_blank" rel="noreferrer">Laravel</a></div>
     </div>
   </div>
