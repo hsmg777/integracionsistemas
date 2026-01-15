@@ -7,43 +7,45 @@
   <title>{{ config('app.name', 'Integrahub') }}</title>
 
   <link rel="preconnect" href="https://fonts.bunny.net">
-  <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
+  <link href="https://fonts.bunny.net/css?family=space-grotesk:400,500,600,700|ibm-plex-mono:400,500" rel="stylesheet" />
 
   <style>
     :root{
-      --bg: #0b0d12;
+      --bg:#0c0b0a;
+      --bg-2:#141110;
+      --text: rgba(255,255,255,.94);
+      --muted: rgba(255,255,255,.6);
       --panel: rgba(255,255,255,.06);
-      --panel-2: rgba(255,255,255,.08);
-      --text: rgba(255,255,255,.90);
-      --muted: rgba(255,255,255,.62);
-      --border: rgba(255,255,255,.10);
-      --border-2: rgba(255,255,255,.14);
-      --shadow: 0 18px 40px rgba(0,0,0,.35);
-      --ring: rgba(125, 211, 252, .35);
-      --accent: #7dd3fc;
-      --accent-2: #a78bfa;
-      --danger: #fb7185;
-      --ok: #34d399;
-      --radius: 16px;
+      --panel2: rgba(255,255,255,.1);
+      --border: rgba(255,255,255,.12);
+      --border2: rgba(255,255,255,.2);
+      --shadow: 0 20px 50px rgba(0,0,0,.45);
+      --ring: rgba(20,184,166,.35);
+      --accent: #14b8a6;
+      --accent-2: #f59e0b;
+      --accent-3: #fb7185;
+      --radius: 18px;
       --radius-sm: 12px;
       --max: 1120px;
+      --grid: rgba(255,255,255,.05);
     }
 
     @media (prefers-color-scheme: light){
       :root{
-        --bg: #f7f8fb;
-        --panel: rgba(15, 23, 42, .04);
-        --panel-2: rgba(15, 23, 42, .06);
-        --text: rgba(15, 23, 42, .92);
-        --muted: rgba(15, 23, 42, .62);
-        --border: rgba(15, 23, 42, .10);
-        --border-2: rgba(15, 23, 42, .14);
-        --shadow: 0 18px 40px rgba(15, 23, 42, .12);
-        --ring: rgba(59, 130, 246, .22);
-        --accent: #2563eb;
-        --accent-2: #7c3aed;
-        --danger: #e11d48;
-        --ok: #059669;
+        --bg:#f6f2ec;
+        --bg-2:#fffdf9;
+        --text: rgba(17,24,39,.92);
+        --muted: rgba(17,24,39,.62);
+        --panel: rgba(17,24,39,.04);
+        --panel2: rgba(17,24,39,.06);
+        --border: rgba(17,24,39,.12);
+        --border2: rgba(17,24,39,.2);
+        --shadow: 0 16px 40px rgba(17,24,39,.12);
+        --ring: rgba(15,118,110,.28);
+        --accent: #0f766e;
+        --accent-2: #b45309;
+        --accent-3: #e11d48;
+        --grid: rgba(17,24,39,.06);
       }
     }
 
@@ -51,44 +53,65 @@
     html,body{ height:100%; }
     body{
       margin:0;
-      font-family: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: radial-gradient(1000px 520px at 15% 10%, rgba(167,139,250,.18), transparent 60%),
-                  radial-gradient(900px 520px at 85% 15%, rgba(125,211,252,.16), transparent 55%),
-                  radial-gradient(900px 520px at 50% 95%, rgba(52,211,153,.10), transparent 55%),
-                  var(--bg);
+      font-family: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+      background:
+        radial-gradient(1100px 600px at 10% -10%, rgba(20,184,166,.22), transparent 60%),
+        radial-gradient(1000px 520px at 90% 0%, rgba(245,158,11,.2), transparent 60%),
+        radial-gradient(900px 520px at 50% 100%, rgba(248,113,113,.12), transparent 60%),
+        var(--bg);
       color: var(--text);
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
-      line-height: 1.35;
+      line-height: 1.4;
+    }
+    body::before{
+      content:"";
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(to right, var(--grid) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+      background-size: 140px 140px;
+      opacity: .18;
+      pointer-events: none;
+      mask-image: radial-gradient(circle at 20% 0%, rgba(0,0,0,.9), transparent 65%);
     }
 
     a{ color:inherit; text-decoration:none; }
     .container{
       max-width: var(--max);
       margin: 0 auto;
-      padding: 28px 18px;
+      padding: 30px 18px 48px;
       min-height: 100%;
       display:flex;
       flex-direction:column;
       gap: 18px;
+      position: relative;
+      z-index: 1;
     }
 
     .topbar{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap: 12px;
+      gap: 16px;
     }
 
     .brand{
-      display:flex; align-items:center; gap: 10px;
+      display:flex; align-items:center; gap: 12px;
       letter-spacing: .2px;
     }
     .brandMark{
-      width: 12px; height: 12px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      box-shadow: 0 0 0 6px rgba(125,211,252,.10);
+      width: 38px; height: 38px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(20,184,166,.9), rgba(245,158,11,.9));
+      box-shadow: 0 10px 20px rgba(20,184,166,.25);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight: 700;
+      color: #0b0a09;
+      font-size: 14px;
     }
     .brandName{
       font-weight: 700;
@@ -102,7 +125,7 @@
     }
 
     .navActions{
-      display:flex; align-items:center; gap: 10px;
+      display:flex; align-items:center; gap: 10px; flex-wrap:wrap;
     }
 
     .btn{
@@ -116,8 +139,8 @@
       transition: transform .12s ease, background .12s ease, border-color .12s ease;
     }
     .btn:hover{
-      background: var(--panel-2);
-      border-color: var(--border-2);
+      background: var(--panel2);
+      border-color: var(--border2);
       transform: translateY(-1px);
     }
     .btn:focus{
@@ -125,13 +148,13 @@
       box-shadow: 0 0 0 4px var(--ring);
     }
     .btnPrimary{
-      border-color: rgba(125,211,252,.28);
-      background: linear-gradient(135deg, rgba(125,211,252,.16), rgba(167,139,250,.14));
+      border-color: rgba(20,184,166,.28);
+      background: linear-gradient(135deg, rgba(20,184,166,.18), rgba(245,158,11,.18));
     }
 
     .hero{
       border: 1px solid var(--border);
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.04));
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       overflow:hidden;
@@ -149,7 +172,7 @@
     }
 
     .heroLeft{
-      padding: 34px 32px;
+      padding: 36px 34px;
       display:flex;
       flex-direction:column;
       gap: 16px;
@@ -161,18 +184,18 @@
       text-transform: uppercase;
     }
     .title{
-      font-size: 34px;
+      font-size: 40px;
       line-height: 1.05;
       letter-spacing: -0.02em;
       margin:0;
-      font-weight: 750;
+      font-weight: 760;
     }
     .subtitle{
       margin:0;
       max-width: 62ch;
       color: var(--muted);
       font-size: 14px;
-      line-height: 1.55;
+      line-height: 1.6;
     }
 
     .pillRow{
@@ -200,8 +223,8 @@
     .heroRight{
       border-left: 1px solid var(--border);
       background:
-        radial-gradient(700px 300px at 20% 25%, rgba(125,211,252,.18), transparent 55%),
-        radial-gradient(700px 320px at 80% 35%, rgba(167,139,250,.18), transparent 55%),
+        radial-gradient(700px 300px at 20% 25%, rgba(20,184,166,.2), transparent 55%),
+        radial-gradient(700px 320px at 80% 35%, rgba(245,158,11,.18), transparent 55%),
         rgba(255,255,255,.02);
       padding: 34px 28px;
       display:flex;
@@ -245,17 +268,31 @@
       text-decoration: underline;
       text-underline-offset: 3px;
     }
+
+    .reveal{
+      opacity: 0;
+      transform: translateY(10px);
+      animation: rise .6s ease forwards;
+      animation-delay: var(--delay, 0s);
+    }
+    @keyframes rise{
+      to{ opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 760px){
+      .topbar{ flex-direction: column; align-items:flex-start; }
+    }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <div class="topbar">
+    <div class="topbar reveal" style="--delay:.05s;">
       <div class="brand">
-        <span class="brandMark" aria-hidden="true"></span>
+        <span class="brandMark" aria-hidden="true">IH</span>
         <div>
           <div class="brandName">{{ config('app.name', 'Integrahub') }}</div>
-          <div class="brandSub">Portal interno · Integración de sistemas</div>
+          <div class="brandSub">Portal interno de integracion</div>
         </div>
       </div>
 
@@ -264,7 +301,7 @@
           @auth
             <a class="btn btnPrimary" href="{{ url('/dashboard') }}">Entrar al portal</a>
           @else
-            <a class="btn" href="{{ route('login') }}">Iniciar sesión</a>
+            <a class="btn" href="{{ route('login') }}">Iniciar sesion</a>
             @if (Route::has('register'))
               <a class="btn btnPrimary" href="{{ route('register') }}">Crear cuenta</a>
             @endif
@@ -273,21 +310,21 @@
       </div>
     </div>
 
-    <div class="hero">
+    <div class="hero reveal" style="--delay:.1s;">
       <div class="heroGrid">
         <div class="heroLeft">
           <div class="kicker">IntegraHub</div>
-          <h1 class="title">Interfaz mínima y moderna para tu demo</h1>
+          <h1 class="title">UI clara, audaz y enfocada en operaciones</h1>
           <p class="subtitle">
-            Una base limpia para Orders, Inventory y Analytics, con consistencia visual y enfoque en legibilidad.
-            Sin elementos recargados ni estilos heredados del starter.
+            Un portal limpio para Orders, Inventory y Analytics con una experiencia visual consistente.
+            Menos ruido, mas lectura y datos al frente.
           </p>
 
           <div class="pillRow">
-            <span class="pill">UI consistente</span>
-            <span class="pill">Dark mode automático</span>
-            <span class="pill">Componentes minimalistas</span>
-            <span class="pill">Accesible y responsivo</span>
+            <span class="pill">Dise�o consistente</span>
+            <span class="pill">Soporte responsive</span>
+            <span class="pill">Legibilidad alta</span>
+            <span class="pill">Dashboard rapido</span>
           </div>
 
           <div class="ctaRow">
@@ -301,14 +338,14 @@
                 @endif
               @endauth
             @endif
-            <a class="btn" href="https://laravel.com/docs" target="_blank" rel="noreferrer">Documentación</a>
+            <a class="btn" href="https://laravel.com/docs" target="_blank" rel="noreferrer">Documentacion</a>
           </div>
         </div>
 
         <div class="heroRight">
           <div class="miniCard">
-            <div class="miniLabel">Módulos</div>
-            <div class="miniValue">Orders · Inventory · Analytics</div>
+            <div class="miniLabel">Modulos</div>
+            <div class="miniValue">Orders / Inventory / Analytics</div>
           </div>
 
           <div class="miniCard">
@@ -318,14 +355,14 @@
 
           <div class="miniCard">
             <div class="miniLabel">Estilo</div>
-            <div class="miniValue">Minimal · 2026 · Enfocado</div>
+            <div class="miniValue">Minimal / 2026 / Focus</div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="footer">
-      <div>© {{ date('Y') }} IntegraHub</div>
+    <div class="footer reveal" style="--delay:.16s;">
+      <div>� {{ date('Y') }} IntegraHub</div>
       <div><a href="https://laravel.com" target="_blank" rel="noreferrer">Laravel</a></div>
     </div>
   </div>
